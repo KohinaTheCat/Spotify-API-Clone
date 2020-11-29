@@ -82,6 +82,15 @@ public class ProfileDriverImpl implements ProfileDriver {
       boolean followed = false;
 
       try (Transaction trans = session.beginTransaction()) {
+        StatementResult existUserRes = trans.run("MATCH (n:profile {userName: $userName}) RETURN n.userName as u",
+            params);
+        StatementResult existFrndRes = trans.run("MATCH (n:profile {userName: $frndUserName}) RETURN n.userName as f",
+            params);
+
+        // CASE: at least one user doesn't exist
+        if (!existUserRes.hasNext() || !existFrndRes.hasNext())
+          return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
+
         StatementResult result = trans.run(
             "RETURN EXISTS( (:profile {userName: $userName})-[:follows]-(:profile {userName: $frndUserName}) ) as bool",
             params);
@@ -90,11 +99,11 @@ public class ProfileDriverImpl implements ProfileDriver {
           Record record = result.next();
           followed = record.get("bool").asBoolean();
 
-          if (!followed) {
+          if (!followed)
             trans.run(
                 "MATCH (a:profile),(b:profile) \n WHERE a.userName = $userName AND b.userName = $frndUserName \nCREATE (a)-[r:follows]->(b)",
                 params);
-          }
+
           trans.success();
         }
       }
@@ -104,7 +113,6 @@ public class ProfileDriverImpl implements ProfileDriver {
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
 
     } catch (Exception e) {
-      System.out.println(e);
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
     }
   }
@@ -112,29 +120,44 @@ public class ProfileDriverImpl implements ProfileDriver {
   @Override
   public DbQueryStatus unfollowFriend(String userName, String frndUserName) {
     boolean valid = userName != null && frndUserName != null;
+
     if (!valid)
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
-    DbQueryStatus status;
+    // TODO: check if we return ok even after person tries to follow themselves
+    if (userName.equals(frndUserName))
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
 
     try (Session session = driver.session()) {
       Map<String, Object> params = new HashMap<>();
       params.put("userName", userName);
       params.put("frndUserName", frndUserName);
 
-      // TODO: verify if we have to check if there was a relationship before
-      session.writeTransaction((Transaction tx) -> tx.run(
-          "MATCH (n:profile { userName: $userName })-[r:follows]->(m:profile { userName: $frndUserName }) DELETE r",
-          params));
+      try (Transaction trans = session.beginTransaction()) {
+        StatementResult existUserRes = trans.run("MATCH (n:profile {userName: $userName}) RETURN n.userName as u",
+            params);
+        StatementResult existFrndRes = trans.run("MATCH (n:profile {userName: $frndUserName}) RETURN n.userName as f",
+            params);
 
-      status = new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
+        // CASE: at least one user doesn't exist
+        if (!existUserRes.hasNext() || !existFrndRes.hasNext())
+          return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
+
+        trans.run(
+            "MATCH (n:profile { userName: $userName })-[r:follows]->(m:profile { userName: $frndUserName }) DELETE r",
+            params);
+
+        trans.success();
+      }
+
       session.close();
-    } catch (Exception e) {
-      System.out.println(e);
-      status = new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
-    }
 
-    return status;
+      // TODO: check if we return ok even after dup. unfollows
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
+
+    } catch (Exception e) {
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
+    }
   }
 
   @Override
