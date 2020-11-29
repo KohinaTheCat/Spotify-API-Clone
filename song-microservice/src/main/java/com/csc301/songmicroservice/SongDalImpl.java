@@ -79,7 +79,7 @@ public class SongDalImpl implements SongDal {
 			}
 			return status;
 		} catch (Exception e) {
-			return new DbQueryStatus("GET", this.ERR);
+			return new DbQueryStatus("DELETE", this.ERR);
 		}
 	}
 
@@ -96,7 +96,7 @@ public class SongDalImpl implements SongDal {
 			DbQueryStatus status = new DbQueryStatus("PUT", found == null ? this.ERR404 : this.OK);
 			return status;
 		} catch (Exception e) {
-			return new DbQueryStatus("GET", this.ERR);
+			return new DbQueryStatus("PUT", this.ERR);
 		}
 	}
 }
