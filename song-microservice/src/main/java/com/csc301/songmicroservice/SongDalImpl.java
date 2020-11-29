@@ -41,41 +41,62 @@ public class SongDalImpl implements SongDal {
 
 	@Override
 	public DbQueryStatus findSongById(String songId) {
-		Song found = db.findById(new ObjectId(songId), Song.class);
-		DbQueryStatus status = new DbQueryStatus("GET", found != null ? this.OK : this.ERR404);
-		status.setData(found.getJsonRepresentation());
-		return status;
+		try {
+			ObjectId _id = new ObjectId(songId);
+			Song found = db.findById(_id, Song.class);
+			DbQueryStatus status = new DbQueryStatus("GET", found != null ? this.OK : this.ERR404);
+			status.setData(found.getJsonRepresentation());
+			return status;
+		} catch (IllegalArgumentException e) {
+			return new DbQueryStatus("GET", this.ERR);
+		}
 	}
 
 	@Override
 	public DbQueryStatus getSongTitleById(String songId) {
-		Song found = db.findById(new ObjectId(songId), Song.class);
-		DbQueryStatus status = new DbQueryStatus("GET", found != null ? this.OK : this.ERR404);
-		if(found != null)
-			status.setData(found.getSongName());
-		return status;
+		try {
+			ObjectId _id = new ObjectId(songId);
+			Song found = db.findById(_id, Song.class);
+			DbQueryStatus status = new DbQueryStatus("GET", found != null ? this.OK : this.ERR404);
+			if (found != null)
+				status.setData(found.getSongName());
+			return status;
+		} catch (IllegalArgumentException e) {
+			return new DbQueryStatus("GET", this.ERR);
+		}
 	}
 
 	@Override
 	public DbQueryStatus deleteSongById(String songId) {
-		Song found = db.findById(new ObjectId(songId), Song.class);
-		DbQueryStatus status = new DbQueryStatus("DELETE", this.ERR);
-		if (found != null) {
-			DeleteResult res = db.remove(found, "songs");
-			if(res.wasAcknowledged()) status.setdbQueryExecResult(this.OK);
+		try {
+			ObjectId _id = new ObjectId(songId);
+			Song found = db.findById(_id, Song.class);
+			DbQueryStatus status = new DbQueryStatus("DELETE", this.ERR404);
+			if (found != null) {
+				DeleteResult res = db.remove(found, "songs");
+				if (res.wasAcknowledged())
+					status.setdbQueryExecResult(this.OK);
+			}
+			return status;
+		} catch (IllegalArgumentException e) {
+			return new DbQueryStatus("GET", this.ERR);
 		}
-		return status;
 	}
 
 	@Override
 	public DbQueryStatus updateSongFavouritesCount(String songId, boolean shouldDecrement) {
-		Song found = db.findById(new ObjectId(songId), Song.class);
-		if (found != null) {
-			long count = found.getSongAmountFavourites() + (shouldDecrement ? -1 : 1);
-			found.setSongAmountFavourites(count);
-			found = db.save(found);
+		try {
+			ObjectId _id = new ObjectId(songId);
+			Song found = db.findById(_id, Song.class);
+			if (found != null) {
+				long count = found.getSongAmountFavourites() + (shouldDecrement ? -1 : 1);
+				found.setSongAmountFavourites(count);
+				found = db.save(found);
+			}
+			DbQueryStatus status = new DbQueryStatus("PUT", found == null ? this.ERR404 : this.OK);
+			return status;
+		} catch (IllegalArgumentException e) {
+			return new DbQueryStatus("GET", this.ERR);
 		}
-		DbQueryStatus status = new DbQueryStatus("PUT", found == null ? this.ERR404 : this.OK);
-		return status;
 	}
 }
