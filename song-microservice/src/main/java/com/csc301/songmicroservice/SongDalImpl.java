@@ -56,7 +56,7 @@ public class SongDalImpl implements SongDal {
 
 	@Override
 	public DbQueryStatus deleteSongById(String songId) {
-		Song found = (Song) this.findSongById(songId).getData();
+		Song found = db.findById(new ObjectId(songId), Song.class);
 		DbQueryStatus status = new DbQueryStatus("DELETE", found == null ? this.ERR404 : this.OK);
 		if (found != null) {
 			db.remove(found, "songs");
