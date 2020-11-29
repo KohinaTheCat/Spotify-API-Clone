@@ -47,7 +47,7 @@ public class SongDalImpl implements SongDal {
 			DbQueryStatus status = new DbQueryStatus("GET", found != null ? this.OK : this.ERR404);
 			status.setData(found.getJsonRepresentation());
 			return status;
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			return new DbQueryStatus("GET", this.ERR);
 		}
 	}
@@ -61,7 +61,7 @@ public class SongDalImpl implements SongDal {
 			if (found != null)
 				status.setData(found.getSongName());
 			return status;
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			return new DbQueryStatus("GET", this.ERR);
 		}
 	}
@@ -78,7 +78,7 @@ public class SongDalImpl implements SongDal {
 					status.setdbQueryExecResult(this.OK);
 			}
 			return status;
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			return new DbQueryStatus("GET", this.ERR);
 		}
 	}
@@ -95,7 +95,7 @@ public class SongDalImpl implements SongDal {
 			}
 			DbQueryStatus status = new DbQueryStatus("PUT", found == null ? this.ERR404 : this.OK);
 			return status;
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			return new DbQueryStatus("GET", this.ERR);
 		}
 	}
