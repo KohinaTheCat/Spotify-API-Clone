@@ -1,5 +1,7 @@
 package com.csc301.profilemicroservice;
 
+import org.json.JSONObject;
+import org.neo4j.driver.v1.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,91 +31,110 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/")
 public class ProfileController {
-	public static final String KEY_USER_NAME = "userName";
-	public static final String KEY_USER_FULLNAME = "fullName";
-	public static final String KEY_USER_PASSWORD = "password";
+  public static final String KEY_USER_NAME = "userName";
+  public static final String KEY_USER_FULLNAME = "fullName";
+  public static final String KEY_USER_PASSWORD = "password";
 
-	@Autowired
-	private final ProfileDriverImpl profileDriver;
+  @Autowired
+  private final ProfileDriverImpl profileDriver;
 
-	@Autowired
-	private final PlaylistDriverImpl playlistDriver;
+  @Autowired
+  private final PlaylistDriverImpl playlistDriver;
 
-	OkHttpClient client = new OkHttpClient();
+  OkHttpClient client = new OkHttpClient();
 
-	public ProfileController(ProfileDriverImpl profileDriver, PlaylistDriverImpl playlistDriver) {
-		this.profileDriver = profileDriver;
-		this.playlistDriver = playlistDriver;
-	}
+  public ProfileController(ProfileDriverImpl profileDriver, PlaylistDriverImpl playlistDriver) {
+    this.profileDriver = profileDriver;
+    this.playlistDriver = playlistDriver;
+  }
 
-	@RequestMapping(value = "/profile", method = RequestMethod.POST)
-	public @ResponseBody Map<String, Object> addProfile(@RequestParam Map<String, String> params,
-			HttpServletRequest request) {
+  @RequestMapping(value = "/profile", method = RequestMethod.POST)
+  public @ResponseBody Map<String, Object> addProfile(@RequestParam Map<String, String> params,
+      HttpServletRequest request) {
 
-		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("path", String.format("POST %s", Utils.getUrl(request)));
+    Map<String, Object> response = new HashMap<String, Object>();
+    response.put("path", String.format("POST %s", Utils.getUrl(request))); 
+    
+    DbQueryStatus dbQueryStatus = profileDriver.createUserProfile(params.get(KEY_USER_NAME),
+        params.get(KEY_USER_FULLNAME), params.get(KEY_USER_PASSWORD));
+    
+    response.put("message", dbQueryStatus.getMessage());
+    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 
-		return null;
-	}
+    return response;
+  }
 
-	@RequestMapping(value = "/followFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
-	public @ResponseBody Map<String, Object> followFriend(@PathVariable("userName") String userName,
-			@PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
+  @RequestMapping(value = "/followFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
+  public @ResponseBody Map<String, Object> followFriend(@PathVariable("userName") String userName,
+      @PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
 
-		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
-		
-		return null;
-	}
+    Map<String, Object> response = new HashMap<String, Object>();
+    response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-	@RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
-	public @ResponseBody Map<String, Object> getAllFriendFavouriteSongTitles(@PathVariable("userName") String userName,
-			HttpServletRequest request) {
+    DbQueryStatus dbQueryStatus = profileDriver.followFriend(userName, friendUserName);
 
-		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
+    response.put("message", dbQueryStatus.getMessage());
+    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 
-		return null;
-	}
+    return response;
+  }
 
+  //  TODO:
+  @RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
+  public @ResponseBody Map<String, Object> getAllFriendFavouriteSongTitles(@PathVariable("userName") String userName,
+      HttpServletRequest request) {
 
-	@RequestMapping(value = "/unfollowFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
-	public @ResponseBody Map<String, Object> unfollowFriend(@PathVariable("userName") String userName,
-			@PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
+    Map<String, Object> response = new HashMap<String, Object>();
+    response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
+    return null;
+  }
 
-		return null;
-	}
+  @RequestMapping(value = "/unfollowFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
+  public @ResponseBody Map<String, Object> unfollowFriend(@PathVariable("userName") String userName,
+      @PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
 
-	@RequestMapping(value = "/likeSong/{userName}/{songId}", method = RequestMethod.PUT)
-	public @ResponseBody Map<String, Object> likeSong(@PathVariable("userName") String userName,
-			@PathVariable("songId") String songId, HttpServletRequest request) {
+    Map<String, Object> response = new HashMap<String, Object>();
+    response.put("path", String.format("PUT %s", Utils.getUrl(request)));
+    
+    DbQueryStatus dbQueryStatus = profileDriver.unfollowFriend(userName, friendUserName);
 
-		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
+    response.put("message", dbQueryStatus.getMessage());
+    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 
-		return null;
-	}
+    return response;
+  }
 
-	@RequestMapping(value = "/unlikeSong/{userName}/{songId}", method = RequestMethod.PUT)
-	public @ResponseBody Map<String, Object> unlikeSong(@PathVariable("userName") String userName,
-			@PathVariable("songId") String songId, HttpServletRequest request) {
+  // TODO:
+  @RequestMapping(value = "/likeSong/{userName}/{songId}", method = RequestMethod.PUT)
+  public @ResponseBody Map<String, Object> likeSong(@PathVariable("userName") String userName,
+      @PathVariable("songId") String songId, HttpServletRequest request) {
 
-		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
+    Map<String, Object> response = new HashMap<String, Object>();
+    response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-		return null;
-	}
+    return null;
+  }
 
-	@RequestMapping(value = "/deleteAllSongsFromDb/{songId}", method = RequestMethod.PUT)
-	public @ResponseBody Map<String, Object> deleteAllSongsFromDb(@PathVariable("songId") String songId,
-			HttpServletRequest request) {
+  // TODO:
+  @RequestMapping(value = "/unlikeSong/{userName}/{songId}", method = RequestMethod.PUT)
+  public @ResponseBody Map<String, Object> unlikeSong(@PathVariable("userName") String userName,
+      @PathVariable("songId") String songId, HttpServletRequest request) {
 
-		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
-		
-		return null;
-	}
+    Map<String, Object> response = new HashMap<String, Object>();
+    response.put("path", String.format("PUT %s", Utils.getUrl(request)));
+
+    return null;
+  }
+
+  // TODO:
+  @RequestMapping(value = "/deleteAllSongsFromDb/{songId}", method = RequestMethod.PUT)
+  public @ResponseBody Map<String, Object> deleteAllSongsFromDb(@PathVariable("songId") String songId,
+      HttpServletRequest request) {
+
+    Map<String, Object> response = new HashMap<String, Object>();
+    response.put("path", String.format("PUT %s", Utils.getUrl(request)));
+
+    return null;
+  }
 }

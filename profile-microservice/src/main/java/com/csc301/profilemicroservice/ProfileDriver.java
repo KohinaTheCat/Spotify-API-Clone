@@ -5,4 +5,4 @@ public interface ProfileDriver {
 	DbQueryStatus followFriend(String userName, String frndUserName);
 	DbQueryStatus unfollowFriend(String userName, String frndUserName );
 	DbQueryStatus getAllSongFriendsLike(String userName);
-}
+} 
