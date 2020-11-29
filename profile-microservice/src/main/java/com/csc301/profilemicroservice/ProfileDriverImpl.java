@@ -44,8 +44,6 @@ public class ProfileDriverImpl implements ProfileDriver {
     if (!valid)
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
-    DbQueryStatus status;
-
     try (Session session = driver.session()) {
       Map<String, Object> params = new HashMap<>();
       params.put("userName", userName);
@@ -54,17 +52,16 @@ public class ProfileDriverImpl implements ProfileDriver {
       params.put("plName", userName + "-favorites");
 
       // TODO: error when adding duplicates
-      session.writeTransaction((Transaction tx) -> tx
-          .run("CREATE (m:profile {userName: $userName, fullName: $fullName, password: $password})-[r:created]->(n:playlist {plName: $plName})", params));
+      session.writeTransaction((Transaction tx) -> tx.run(
+          "CREATE (m:profile {userName: $userName, fullName: $fullName, password: $password})-[r:created]->(n:playlist {plName: $plName})",
+          params));
 
-      status = new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
       session.close();
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
     } catch (Exception e) {
       System.out.println(e);
-      status = new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
     }
-
-    return status;
   }
 
   @Override
