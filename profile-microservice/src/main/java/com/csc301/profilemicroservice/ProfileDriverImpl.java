@@ -51,7 +51,6 @@ public class ProfileDriverImpl implements ProfileDriver {
       params.put("password", password);
       params.put("plName", userName + "-favorites");
 
-      // TODO: error when adding duplicates
       session.writeTransaction((Transaction tx) -> tx.run(
           "CREATE (m:profile {userName: $userName, fullName: $fullName, password: $password})-[r:created]->(n:playlist {plName: $plName})",
           params));
@@ -67,29 +66,47 @@ public class ProfileDriverImpl implements ProfileDriver {
   @Override
   public DbQueryStatus followFriend(String userName, String frndUserName) {
     boolean valid = userName != null && frndUserName != null;
+
     if (!valid)
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
-    DbQueryStatus status;
+    // TODO: check if we return ok even after person tries to follow themselves
+    if (userName.equals(frndUserName))
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
 
     try (Session session = driver.session()) {
       Map<String, Object> params = new HashMap<>();
       params.put("userName", userName);
       params.put("frndUserName", frndUserName);
 
-      // TODO: verify duplicate relationships
-      session.writeTransaction((Transaction tx) -> tx.run(
-          "MATCH (a:profile),(b:profile) \n WHERE a.userName = $userName AND b.userName = $frndUserName \nCREATE (a)-[r:follows]->(b)",
-          params));
+      boolean followed = false;
 
-      status = new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
+      try (Transaction trans = session.beginTransaction()) {
+        StatementResult result = trans.run(
+            "RETURN EXISTS( (:profile {userName: $userName})-[:follows]-(:profile {userName: $frndUserName}) ) as bool",
+            params);
+
+        if (result.hasNext()) {
+          Record record = result.next();
+          followed = record.get("bool").asBoolean();
+
+          if (!followed) {
+            trans.run(
+                "MATCH (a:profile),(b:profile) \n WHERE a.userName = $userName AND b.userName = $frndUserName \nCREATE (a)-[r:follows]->(b)",
+                params);
+          }
+          trans.success();
+        }
+      }
       session.close();
+
+      // TODO: check if we return ok even after dup. follows
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
+
     } catch (Exception e) {
       System.out.println(e);
-      status = new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
     }
-
-    return status;
   }
 
   @Override
