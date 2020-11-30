@@ -60,3 +60,23 @@ local.properties
 # Uncomment this line if you wish to ignore the project description file.
 # Typically, this file would be tracked if it contains build/dependency configurations:
 #.project
+
+.classpath
+laucnh.json
+profile-microservice/.classpath
+.vscode/launch.json
+profile-microservice/.classpath
+profile-microservice/.project
+song-microservice/.classpath
+*.prefs
+*.prefs
+song-microservice/.classpath
+profile-microservice/.classpath
+profile-microservice/.project
+profile-microservice/.settings/org.eclipse.jdt.core.prefs
+song-microservice/.classpath
+song-microservice/.project
+*.prefs
+.vscode/launch.json
+song-microservice/.settings/org.eclipse.jdt.apt.core.prefs
+#.project
