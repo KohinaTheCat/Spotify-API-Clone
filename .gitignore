@@ -1,5 +1,4 @@
 **/.DS_Store
-**/.DS_Store
 
 .metadata
 bin/
@@ -80,3 +79,4 @@ song-microservice/.project
 *.prefs
 .vscode/launch.json
 song-microservice/.settings/org.eclipse.jdt.apt.core.prefs
+#.project
