@@ -31,12 +31,10 @@ public class SongController {
 
 	private OkHttpClient client = new OkHttpClient();
 
-	
 	public SongController(SongDal songDal) {
 		this.songDal = songDal;
 	}
 
-	
 	@RequestMapping(value = "/getSongById/{songId}", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> getSongById(@PathVariable("songId") String songId,
 			HttpServletRequest request) {
@@ -52,7 +50,6 @@ public class SongController {
 		return response;
 	}
 
-	
 	@RequestMapping(value = "/getSongTitleById/{songId}", method = RequestMethod.GET)
 	public @ResponseBody Map<String, Object> getSongTitleById(@PathVariable("songId") String songId,
 			HttpServletRequest request) {
@@ -60,10 +57,14 @@ public class SongController {
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("path", String.format("GET %s", Utils.getUrl(request)));
 
-		return null;
+		DbQueryStatus dbQueryStatus = songDal.getSongTitleById(songId);
+
+		response.put("message", dbQueryStatus.getMessage());
+		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+
+		return response;
 	}
 
-	
 	@RequestMapping(value = "/deleteSongById/{songId}", method = RequestMethod.DELETE)
 	public @ResponseBody Map<String, Object> deleteSongById(@PathVariable("songId") String songId,
 			HttpServletRequest request) {
@@ -71,10 +72,14 @@ public class SongController {
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("path", String.format("DELETE %s", Utils.getUrl(request)));
 
-		return null;
+		DbQueryStatus dbQueryStatus = songDal.deleteSongById(songId);
+
+		response.put("message", dbQueryStatus.getMessage());
+		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+
+		return response;
 	}
 
-	
 	@RequestMapping(value = "/addSong", method = RequestMethod.POST)
 	public @ResponseBody Map<String, Object> addSong(@RequestParam Map<String, String> params,
 			HttpServletRequest request) {
@@ -82,10 +87,16 @@ public class SongController {
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("path", String.format("POST %s", Utils.getUrl(request)));
 
-		return null;
+		Song songToAdd = new Song(params.get(Song.KEY_SONG_NAME), params.get(Song.KEY_SONG_ARTIST_FULL_NAME),
+				params.get(Song.KEY_SONG_ALBUM));
+		DbQueryStatus dbQueryStatus = songDal.addSong(songToAdd);
+
+		response.put("message", dbQueryStatus.getMessage());
+		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+
+		return response;
 	}
 
-	
 	@RequestMapping(value = "/updateSongFavouritesCount/{songId}", method = RequestMethod.PUT)
 	public @ResponseBody Map<String, Object> updateFavouritesCount(@PathVariable("songId") String songId,
 			@RequestParam("shouldDecrement") String shouldDecrement, HttpServletRequest request) {
@@ -93,6 +104,12 @@ public class SongController {
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("data", String.format("PUT %s", Utils.getUrl(request)));
 
-		return null;
+	 	DbQueryStatus dbQueryStatus = songDal.updateSongFavouritesCount(songId, shouldDecrement.equals("true"));
+
+		response.put("message", dbQueryStatus.getMessage());
+		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+
+		return response;
+
 	}
 }
