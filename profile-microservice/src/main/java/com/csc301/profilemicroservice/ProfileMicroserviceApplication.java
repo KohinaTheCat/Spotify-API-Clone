@@ -10,17 +10,16 @@ import org.neo4j.driver.v1.Transaction;
 
 @SpringBootApplication
 public class ProfileMicroserviceApplication {
-	public static String dbUri = "bolt://localhost:7687";
-    public static Driver driver = GraphDatabase.driver(dbUri, AuthTokens.basic("neo4j","1234"));
 
-    
-	public static void main(String[] args) {
-		SpringApplication.run(ProfileMicroserviceApplication.class, args);
-		
-		ProfileDriverImpl.InitProfileDb();
-		PlaylistDriverImpl.InitPlaylistDb();
-		
-		System.out.println("Profile service is running on port 3002");
-	}
+  public static String dbUri = "bolt://localhost:7687";
+  public static Driver driver = GraphDatabase.driver(dbUri, AuthTokens.basic("neo4j", "1234"));
+
+  public static void main(String[] args) {
+    SpringApplication.run(ProfileMicroserviceApplication.class, args);
+
+    ProfileDriverImpl.InitProfileDb();
+    PlaylistDriverImpl.InitPlaylistDb();
+
+    System.out.println("Profile service is running on port 3002");
+  }
 }
-
