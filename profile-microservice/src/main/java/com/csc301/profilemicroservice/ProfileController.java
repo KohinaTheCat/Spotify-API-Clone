@@ -53,11 +53,11 @@ public class ProfileController {
       HttpServletRequest request) {
 
     Map<String, Object> response = new HashMap<String, Object>();
-    response.put("path", String.format("POST %s", Utils.getUrl(request))); 
-    
+    response.put("path", String.format("POST %s", Utils.getUrl(request)));
+
     DbQueryStatus dbQueryStatus = profileDriver.createUserProfile(params.get(KEY_USER_NAME),
         params.get(KEY_USER_FULLNAME), params.get(KEY_USER_PASSWORD));
-    
+
     response.put("message", dbQueryStatus.getMessage());
     response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 
@@ -79,7 +79,6 @@ public class ProfileController {
     return response;
   }
 
-  //  TODO:
   @RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
   public @ResponseBody Map<String, Object> getAllFriendFavouriteSongTitles(@PathVariable("userName") String userName,
       HttpServletRequest request) {
@@ -87,7 +86,12 @@ public class ProfileController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-    return null;
+    DbQueryStatus dbQueryStatus = profileDriver.getAllSongFriendsLike(userName);
+
+    response.put("message", dbQueryStatus.getMessage());
+    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+
+    return response;
   }
 
   @RequestMapping(value = "/unfollowFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
@@ -96,7 +100,7 @@ public class ProfileController {
 
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
-    
+
     DbQueryStatus dbQueryStatus = profileDriver.unfollowFriend(userName, friendUserName);
 
     response.put("message", dbQueryStatus.getMessage());
@@ -105,7 +109,6 @@ public class ProfileController {
     return response;
   }
 
-  // TODO:
   @RequestMapping(value = "/likeSong/{userName}/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> likeSong(@PathVariable("userName") String userName,
       @PathVariable("songId") String songId, HttpServletRequest request) {
@@ -113,10 +116,14 @@ public class ProfileController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-    return null;
+    DbQueryStatus dbQueryStatus = playlistDriver.likeSong(userName, songId);
+
+    response.put("message", dbQueryStatus.getMessage());
+    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+
+    return response;
   }
 
-  // TODO:
   @RequestMapping(value = "/unlikeSong/{userName}/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> unlikeSong(@PathVariable("userName") String userName,
       @PathVariable("songId") String songId, HttpServletRequest request) {
@@ -124,10 +131,14 @@ public class ProfileController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-    return null;
+    DbQueryStatus dbQueryStatus = playlistDriver.unlikeSong(userName, songId);
+
+    response.put("message", dbQueryStatus.getMessage());
+    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+
+    return response;
   }
 
-  // TODO:
   @RequestMapping(value = "/deleteAllSongsFromDb/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> deleteAllSongsFromDb(@PathVariable("songId") String songId,
       HttpServletRequest request) {
@@ -135,6 +146,11 @@ public class ProfileController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-    return null;
+    DbQueryStatus dbQueryStatus = playlistDriver.deleteSongFromDb(songId);
+
+    response.put("message", dbQueryStatus.getMessage());
+    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+
+    return response;
   }
 }
