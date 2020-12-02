@@ -15,6 +15,7 @@ import com.csc301.profilemicroservice.Utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import okhttp3.Call;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -116,10 +117,20 @@ public class ProfileController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-    DbQueryStatus dbQueryStatus = playlistDriver.likeSong(userName, songId);
+    String url = "http://localhost:3001/updateSongFavouritesCount/" + songId + "?shouldDecrement=false";
+    RequestBody formBody = new FormBody.Builder().build();
+    Request req = new Request.Builder().url(url).put(formBody).build();
 
-    response.put("message", dbQueryStatus.getMessage());
-    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+    try {
+      client.newCall(req).execute();
+      DbQueryStatus dbQueryStatus = playlistDriver.likeSong(userName, songId);
+
+      response.put("message", dbQueryStatus.getMessage());
+      response.put("status", DbQueryExecResult.QUERY_OK);
+      response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+    } catch (IOException e) {
+      response.put("status", DbQueryExecResult.QUERY_ERROR_GENERIC);
+    }
 
     return response;
   }
@@ -131,10 +142,20 @@ public class ProfileController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-    DbQueryStatus dbQueryStatus = playlistDriver.unlikeSong(userName, songId);
+    String url = "http://localhost:3001/updateSongFavouritesCount/" + songId + "?shouldDecrement=true";
+    RequestBody formBody = new FormBody.Builder().build();
+    Request req = new Request.Builder().url(url).put(formBody).build();
 
-    response.put("message", dbQueryStatus.getMessage());
-    response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+    try {
+      client.newCall(req).execute();
+      DbQueryStatus dbQueryStatus = playlistDriver.unlikeSong(userName, songId);
+
+      response.put("message", dbQueryStatus.getMessage());
+      response.put("status", DbQueryExecResult.QUERY_OK);
+      response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
+    } catch (IOException e) {
+      response.put("status", DbQueryExecResult.QUERY_ERROR_GENERIC);
+    }
 
     return response;
   }
