@@ -80,6 +80,7 @@ public class ProfileController {
     return response;
   }
 
+  // TODO:
   @RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
   public @ResponseBody Map<String, Object> getAllFriendFavouriteSongTitles(@PathVariable("userName") String userName,
       HttpServletRequest request) {
@@ -160,6 +161,7 @@ public class ProfileController {
     return response;
   }
 
+  // TODO:
   @RequestMapping(value = "/deleteAllSongsFromDb/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> deleteAllSongsFromDb(@PathVariable("songId") String songId,
       HttpServletRequest request) {
