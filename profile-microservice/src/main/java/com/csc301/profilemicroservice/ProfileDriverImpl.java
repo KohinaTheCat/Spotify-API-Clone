@@ -162,7 +162,31 @@ public class ProfileDriverImpl implements ProfileDriver {
 
   @Override
   public DbQueryStatus getAllSongFriendsLike(String userName) {
+    boolean valid = userName != null;
+    String queryStr;
+    StatementResult res;
 
-    return null;
+    DbQueryStatus dbQueryStatus = new DbQueryStatus("GET", DbQueryExecResult.QUERY_OK);
+
+    if (!valid)
+      return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
+
+    try (Session session = driver.session()) {
+      Map<String, Object> params = new HashMap<>();
+      
+      try (Transaction trans = session.beginTransaction()) {
+        queryStr = "MATCH (a:profile {userName: $userName})-[:follows]->(b:profile) \n MATCH (c:playlist {plName: b.name + '-favourites'})-[:includes]->(s:song) \n RETURN b.userName as username, collect(s.songName) as songs";
+        res = trans.run(queryStr, params);
+        trans.success();
+      }
+      session.close();
+
+
+      return dbQueryStatus;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
+    }
+
   }
 }

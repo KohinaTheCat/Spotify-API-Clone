@@ -162,7 +162,7 @@ public class ProfileController {
 				JSONObject body = new JSONObject(res.body().string());
 				if (!body.get("status").toString().equals("OK"))
 					dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
-			} 
+			}
 		} catch (Exception e) {
 			dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
 			e.printStackTrace();
@@ -170,7 +170,7 @@ public class ProfileController {
 
 		response.put("message", dbQueryStatus.getMessage());
 		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
-		
+
 		return response;
 	}
 
@@ -189,13 +189,13 @@ public class ProfileController {
 		return response;
 	}
 
-	@RequestMapping(value = "/addSong/{songId}", method = RequestMethod.POST)
+	@RequestMapping(value = "/addSong/{songId}/{songName}", method = RequestMethod.POST)
 	public @ResponseBody Map<String, Object> addProfile(@PathVariable("songId") String songId,
-			HttpServletRequest request) {
+			@PathVariable("songName") String songName, HttpServletRequest request) {
 		Map<String, Object> response = new HashMap<String, Object>();
 		response.put("path", String.format("POST %s", Utils.getUrl(request)));
 
-		DbQueryStatus dbQueryStatus = playlistDriver.addSong(songId);
+		DbQueryStatus dbQueryStatus = playlistDriver.addSong(songId, songName);
 
 		response.put("message", dbQueryStatus.getMessage());
 		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());

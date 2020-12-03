@@ -128,12 +128,13 @@ public class PlaylistDriverImpl implements PlaylistDriver {
 	}
 
 	/* Only newly created Valid Song Ids get passed here */
-	public DbQueryStatus addSong(String songId) {
+	public DbQueryStatus addSong(String songId, String songName) {
 		String queryStr;
 		try (Session session = driver.session()) {
-			queryStr = "MERGE (s:song {songId: $songId})";
+			queryStr = "MERGE (s:song {songId: $songId, songName: $songName})";
 			Map<String, Object> params = new HashMap<>();
 			params.put("songId", songId);
+			params.put("songName", songName);
 			session.writeTransaction((Transaction tx) -> tx.run(queryStr, params));
 			session.close();
 			return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
