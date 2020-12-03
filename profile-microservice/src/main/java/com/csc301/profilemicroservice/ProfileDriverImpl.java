@@ -49,7 +49,7 @@ public class ProfileDriverImpl implements ProfileDriver {
       params.put("userName", userName);
       params.put("fullName", fullName);
       params.put("password", password);
-      params.put("plName", userName + "-favorites");
+      params.put("plName", userName + "-favourites");
 
       session.writeTransaction((Transaction tx) -> tx.run(
           "CREATE (m:profile {userName: $userName, fullName: $fullName, password: $password})-[r:created]->(n:playlist {plName: $plName})",

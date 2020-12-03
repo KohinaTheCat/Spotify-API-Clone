@@ -1,5 +1,6 @@
 package com.csc301.songmicroservice;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,8 +17,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import okhttp3.Call;
+import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import javax.servlet.http.HttpServletRequest;
@@ -74,6 +77,22 @@ public class SongController {
 
 		DbQueryStatus dbQueryStatus = songDal.deleteSongById(songId);
 
+		if (dbQueryStatus.getdbQueryExecResult().equals(DbQueryExecResult.QUERY_OK)) {
+			String url = "http://localhost:3002/deleteAllSongsFromDb/" + songId;
+			RequestBody formBody = new FormBody.Builder().build();
+			Request req = new Request.Builder().url(url).put(formBody).build();
+
+			try {
+				Response res = client.newCall(req).execute();
+				JSONObject body = new JSONObject(res.body().string());
+				if (!body.get("status").toString().equals("OK"))
+					dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_NOT_FOUND);
+			} catch (Exception e) {
+				dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
+				e.printStackTrace();
+			}
+		}
+
 		response.put("message", dbQueryStatus.getMessage());
 		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 
@@ -91,6 +110,25 @@ public class SongController {
 				params.get(Song.KEY_SONG_ALBUM));
 		DbQueryStatus dbQueryStatus = songDal.addSong(songToAdd);
 
+		if (dbQueryStatus.getdbQueryExecResult().equals(DbQueryExecResult.QUERY_OK)) {
+			@SuppressWarnings("unchecked")
+			Map<String, String> song = (Map<String, String>) dbQueryStatus.getData();
+
+			String url = "http://localhost:3002/addSong/" + song.get("id");
+			RequestBody formBody = new FormBody.Builder().build();
+			Request req = new Request.Builder().url(url).post(formBody).build();
+
+			try {
+				Response res = client.newCall(req).execute();
+				JSONObject body = new JSONObject(res.body().string());
+				if (!body.get("status").toString().equals("OK"))
+					dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_NOT_FOUND);
+			} catch (Exception e) {
+				dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
+				e.printStackTrace();
+			}
+		}
+
 		response.put("message", dbQueryStatus.getMessage());
 		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
 
@@ -102,9 +140,9 @@ public class SongController {
 			@RequestParam("shouldDecrement") String shouldDecrement, HttpServletRequest request) {
 
 		Map<String, Object> response = new HashMap<String, Object>();
-		response.put("data", String.format("PUT %s", Utils.getUrl(request)));
+		response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
-	 	DbQueryStatus dbQueryStatus = songDal.updateSongFavouritesCount(songId, shouldDecrement.equals("true"));
+		DbQueryStatus dbQueryStatus = songDal.updateSongFavouritesCount(songId, shouldDecrement.equals("true"));
 
 		response.put("message", dbQueryStatus.getMessage());
 		response = Utils.setResponseStatus(response, dbQueryStatus.getdbQueryExecResult(), dbQueryStatus.getData());
