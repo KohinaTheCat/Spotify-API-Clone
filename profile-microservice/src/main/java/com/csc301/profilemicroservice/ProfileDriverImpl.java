@@ -173,6 +173,7 @@ public class ProfileDriverImpl implements ProfileDriver {
       params.put("userName", userName);
 
       try (Transaction trans = session.beginTransaction()) {
+        // TODO: verify if we return FullName instead of UserName
         queryStr = "MATCH (a:profile {userName: $userName})-[:follows]->(b:profile) \n MATCH (c:playlist {plName: b.userName + '-favourites'})-[:includes]->(s:song) \n RETURN b.fullName as username, collect(s.songName) as songs";
         res = trans.run(queryStr, params);
         Map<String, Object> data = new HashMap<>();
