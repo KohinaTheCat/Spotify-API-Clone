@@ -1,17 +1,14 @@
 package com.csc301.profilemicroservice;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
-
-import org.springframework.stereotype.Repository;
 import org.neo4j.driver.v1.Transaction;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class ProfileDriverImpl implements ProfileDriver {
@@ -169,22 +166,30 @@ public class ProfileDriverImpl implements ProfileDriver {
     DbQueryStatus dbQueryStatus = new DbQueryStatus("GET", DbQueryExecResult.QUERY_OK);
 
     if (!valid)
-      return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
+      new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
     try (Session session = driver.session()) {
       Map<String, Object> params = new HashMap<>();
-      
+      params.put("userName", userName);
+
       try (Transaction trans = session.beginTransaction()) {
-        queryStr = "MATCH (a:profile {userName: $userName})-[:follows]->(b:profile) \n MATCH (c:playlist {plName: b.name + '-favourites'})-[:includes]->(s:song) \n RETURN b.userName as username, collect(s.songName) as songs";
+        queryStr = "MATCH (a:profile {userName: $userName})-[:follows]->(b:profile) \n MATCH (c:playlist {plName: b.userName + '-favourites'})-[:includes]->(s:song) \n RETURN b.fullName as username, collect(s.songName) as songs";
         res = trans.run(queryStr, params);
+        Map<String, Object> data = new HashMap<>();
+        Record rec;
+        if (!res.hasNext())
+          return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
+        while (res.hasNext()) {
+          rec = res.next();
+          data.put(rec.get("username").asString(), rec.get("songs").asList());
+        }
+        dbQueryStatus.setData(data);
         trans.success();
       }
       session.close();
-
-
+      dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_OK);
       return dbQueryStatus;
     } catch (Exception e) {
-      e.printStackTrace();
       return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
     }
 

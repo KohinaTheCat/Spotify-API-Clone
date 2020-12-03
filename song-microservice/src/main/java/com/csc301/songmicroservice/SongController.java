@@ -1,8 +1,12 @@
 package com.csc301.songmicroservice;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -10,20 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import okhttp3.Call;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
-import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/")
@@ -114,7 +109,7 @@ public class SongController {
 			@SuppressWarnings("unchecked")
 			Map<String, String> song = (Map<String, String>) dbQueryStatus.getData();
 
-			String url = "http://localhost:3002/addSong/" + song.get("id");
+			String url = "http://localhost:3002/addSong/" + song.get("id") + "/" + song.get("songName");
 			RequestBody formBody = new FormBody.Builder().build();
 			Request req = new Request.Builder().url(url).post(formBody).build();
 
