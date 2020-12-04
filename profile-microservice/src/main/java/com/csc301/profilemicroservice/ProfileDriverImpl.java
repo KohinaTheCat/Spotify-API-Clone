@@ -69,9 +69,8 @@ public class ProfileDriverImpl implements ProfileDriver {
     if (!valid)
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
-    // TODO: check if we return ok even after person tries to follow themselves
     if (userName.equals(frndUserName))
-      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
     try (Session session = driver.session()) {
       Map<String, Object> params = new HashMap<>();
@@ -125,9 +124,8 @@ public class ProfileDriverImpl implements ProfileDriver {
     if (!valid)
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
-    // TODO: check if we return ok even after person tries to follow themselves
     if (userName.equals(frndUserName))
-      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
+      return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
     boolean followed = false;
 
@@ -168,7 +166,6 @@ public class ProfileDriverImpl implements ProfileDriver {
 
       session.close();
 
-      // TODO: check if we return ok even after dup. unfollows
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
 
     } catch (Exception e) {

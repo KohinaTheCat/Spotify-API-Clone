@@ -71,7 +71,6 @@ public class ProfileController {
     return response;
   }
 
-  // TODO:
   @RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
   public @ResponseBody Map<String, Object> getAllFriendFavouriteSongTitles(@PathVariable("userName") String userName,
       HttpServletRequest request) {
