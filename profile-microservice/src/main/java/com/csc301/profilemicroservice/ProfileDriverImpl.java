@@ -37,6 +37,15 @@ public class ProfileDriverImpl implements ProfileDriver {
     }
   }
 
+  /**
+   * Creates a user profile on the Neo4j DB with a unique userName, and fullName
+   * and password
+   * 
+   * @param userName
+   * @param fullName
+   * @param password
+   * @return DbQueryStatus
+   */
   @Override
   public DbQueryStatus createUserProfile(String userName, String fullName, String password) {
     boolean valid = userName != null && fullName != null && password != null;
@@ -62,13 +71,19 @@ public class ProfileDriverImpl implements ProfileDriver {
     }
   }
 
+  /**
+   * Creates a relationship userName-[:follows]->frndUserName
+   * 
+   * @param userName
+   * @param frndUserName
+   * @return DbQueryStatus
+   */
   @Override
   public DbQueryStatus followFriend(String userName, String frndUserName) {
     boolean valid = userName != null && frndUserName != null;
 
     if (!valid)
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
-
     if (userName.equals(frndUserName))
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
@@ -117,6 +132,13 @@ public class ProfileDriverImpl implements ProfileDriver {
     }
   }
 
+  /**
+   * Removes a relationship userName-[:follows]->frndUserName
+   * 
+   * @param userName
+   * @param frndUserName
+   * @return DbQueryStatus
+   */
   @Override
   public DbQueryStatus unfollowFriend(String userName, String frndUserName) {
     boolean valid = userName != null && frndUserName != null;
@@ -173,6 +195,12 @@ public class ProfileDriverImpl implements ProfileDriver {
     }
   }
 
+  /**
+   * Get's the liked songs of friends of userName
+   * 
+   * @param userName
+   * @return DbQueryStatus
+   */
   @Override
   public DbQueryStatus getAllSongFriendsLike(String userName) {
     boolean valid = userName != null;

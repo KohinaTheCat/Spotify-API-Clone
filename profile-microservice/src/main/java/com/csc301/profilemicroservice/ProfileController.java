@@ -40,6 +40,13 @@ public class ProfileController {
     this.playlistDriver = playlistDriver;
   }
 
+  /**
+   * POST /profile. Adds a profile to the Neo4j database
+   * 
+   * @param params
+   * @param request
+   * @return
+   */
   @RequestMapping(value = "/profile", method = RequestMethod.POST)
   public @ResponseBody Map<String, Object> addProfile(@RequestParam Map<String, String> params,
       HttpServletRequest request) {
@@ -56,6 +63,16 @@ public class ProfileController {
     return response;
   }
 
+
+  /**
+   * PUT /followFriend/{userName}/{friendUserName}. Allows a Profile to follow
+   * another Profile and become a friend
+   * 
+   * @param userName
+   * @param friendUserName
+   * @param request
+   * @return
+   */
   @RequestMapping(value = "/followFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> followFriend(@PathVariable("userName") String userName,
       @PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
@@ -71,6 +88,14 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * GET /getAllFriendFavouriteSongTitles/{userName}. Returns the Song names of
+   * all of the Songs that the User’s friends have liked
+   * 
+   * @param userName
+   * @param request
+   * @return
+   */
   @RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
   public @ResponseBody Map<String, Object> getAllFriendFavouriteSongTitles(@PathVariable("userName") String userName,
       HttpServletRequest request) {
@@ -86,6 +111,15 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * PUT /unfollowFriend/{userName}/{friendUserName}. Allows a Profile to unfollow
+   * another Profile and no longer be “friends” with them
+   * 
+   * @param userName
+   * @param friendUserName
+   * @param request
+   * @return
+   */
   @RequestMapping(value = "/unfollowFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> unfollowFriend(@PathVariable("userName") String userName,
       @PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
@@ -101,6 +135,15 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * PUT /likeSong/{userName}/{songId}. Allows a Profile to like a song and add it
+   * to their favourites. You can like the same song twice
+   * 
+   * @param userName
+   * @param songId
+   * @param request
+   * @return
+   */
   @RequestMapping(value = "/likeSong/{userName}/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> likeSong(@PathVariable("userName") String userName,
       @PathVariable("songId") String songId, HttpServletRequest request) {
@@ -121,7 +164,6 @@ public class ProfileController {
         if (!body.get("status").toString().equals("OK"))
           dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
       } else if (dbQueryStatus.getdbQueryExecResult().equals(DbQueryExecResult.QUERY_ERROR_NOT_FOUND))
-        // Piazza @447
         dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_OK); // special case
     } catch (Exception e) {
       dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
@@ -134,13 +176,22 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * PUT /unlikeSong/{userName}/{songId}. : Allows a Profile to unlike a song and
+   * remove it from their favourites. You cannot unlike the same song twice.
+   * 
+   * @param userName
+   * @param songId
+   * @param request
+   * @return
+   */
   @RequestMapping(value = "/unlikeSong/{userName}/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> unlikeSong(@PathVariable("userName") String userName,
       @PathVariable("songId") String songId, HttpServletRequest request) {
 
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
-
+    
     String url = "http://localhost:3001/updateSongFavouritesCount/" + songId + "?shouldDecrement=true";
     RequestBody formBody = new FormBody.Builder().build();
     Request req = new Request.Builder().url(url).put(formBody).build();
