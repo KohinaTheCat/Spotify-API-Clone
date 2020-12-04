@@ -241,6 +241,5 @@ public class ProfileDriverImpl implements ProfileDriver {
       e.printStackTrace();
       return new DbQueryStatus(e.getMessage(), DbQueryExecResult.QUERY_ERROR_GENERIC);
     }
-
   }
 }
