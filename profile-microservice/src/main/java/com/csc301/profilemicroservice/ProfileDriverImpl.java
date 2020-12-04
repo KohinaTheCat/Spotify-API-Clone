@@ -90,25 +90,27 @@ public class ProfileDriverImpl implements ProfileDriver {
         if (!existUserRes.hasNext() || !existFrndRes.hasNext())
           return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
+        // CASE: user already follows frnd
         StatementResult result = trans.run(
-            "RETURN EXISTS( (:profile {userName: $userName})-[:follows]-(:profile {userName: $frndUserName}) ) as bool",
+            "RETURN EXISTS( (:profile {userName: $userName})-[:follows]->(:profile {userName: $frndUserName}) ) as bool",
             params);
 
         if (result.hasNext()) {
           Record record = result.next();
           followed = record.get("bool").asBoolean();
 
-          if (!followed)
-            trans.run(
-                "MATCH (a:profile),(b:profile) \n WHERE a.userName = $userName AND b.userName = $frndUserName \nCREATE (a)-[r:follows]->(b)",
-                params);
+          if (followed)
+            return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
+
+          trans.run(
+              "MATCH (a:profile),(b:profile) \n WHERE a.userName = $userName AND b.userName = $frndUserName \nCREATE (a)-[r:follows]->(b)",
+              params);
 
           trans.success();
         }
       }
       session.close();
 
-      // TODO: check if we return ok even after dup. follows
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
 
     } catch (Exception e) {
@@ -127,6 +129,8 @@ public class ProfileDriverImpl implements ProfileDriver {
     if (userName.equals(frndUserName))
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_OK);
 
+    boolean followed = false;
+
     try (Session session = driver.session()) {
       Map<String, Object> params = new HashMap<>();
       params.put("userName", userName);
@@ -142,11 +146,24 @@ public class ProfileDriverImpl implements ProfileDriver {
         if (!existUserRes.hasNext() || !existFrndRes.hasNext())
           return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
-        trans.run(
-            "MATCH (n:profile { userName: $userName })-[r:follows]->(m:profile { userName: $frndUserName }) DELETE r",
+        // CASE: user doesn't follows frnd
+        StatementResult result = trans.run(
+            "RETURN EXISTS( (:profile {userName: $userName})-[:follows]->(:profile {userName: $frndUserName}) ) as bool",
             params);
 
-        trans.success();
+        if (result.hasNext()) {
+          Record record = result.next();
+          followed = record.get("bool").asBoolean();
+
+          if (!followed)
+            return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
+
+          trans.run(
+              "MATCH (n:profile { userName: $userName })-[r:follows]->(m:profile { userName: $frndUserName }) DELETE r",
+              params);
+
+          trans.success();
+        }
       }
 
       session.close();
@@ -182,7 +199,7 @@ public class ProfileDriverImpl implements ProfileDriver {
         if (!userResult.hasNext())
           return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
         List<Object> followers = userResult.next().get("userName").asList();
-        if(followers.size() == 0)
+        if (followers.size() == 0)
           return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
         for (Object follower : followers) {
           params.put("userName", (String) follower);
