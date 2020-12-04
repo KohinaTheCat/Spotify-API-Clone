@@ -9,9 +9,8 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
-
-import org.springframework.stereotype.Repository;
 import org.neo4j.driver.v1.Transaction;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public class ProfileDriverImpl implements ProfileDriver {
@@ -49,7 +48,7 @@ public class ProfileDriverImpl implements ProfileDriver {
       params.put("userName", userName);
       params.put("fullName", fullName);
       params.put("password", password);
-      params.put("plName", userName + "-favorites");
+      params.put("plName", userName + "-favourites");
 
       session.writeTransaction((Transaction tx) -> tx.run(
           "CREATE (m:profile {userName: $userName, fullName: $fullName, password: $password})-[r:created]->(n:playlist {plName: $plName})",
@@ -162,7 +161,44 @@ public class ProfileDriverImpl implements ProfileDriver {
 
   @Override
   public DbQueryStatus getAllSongFriendsLike(String userName) {
+    boolean valid = userName != null;
+    String queryStr;
+    StatementResult userResult, songResult;
 
-    return null;
+    DbQueryStatus dbQueryStatus = new DbQueryStatus("GET", DbQueryExecResult.QUERY_OK);
+
+    if (!valid)
+      new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
+
+    try (Session session = driver.session()) {
+      Map<String, Object> params = new HashMap<>();
+      params.put("userName", userName);
+
+      try (Transaction trans = session.beginTransaction()) {
+        queryStr = "MATCH (a:profile {userName: $userName})-[:follows]->(b:profile) RETURN collect(b.userName) as userName";
+        userResult = trans.run(queryStr, params);
+        Map<String, Object> data = new HashMap<>();
+        queryStr = "MATCH (c:playlist {plName: $userName + '-favourites'})-[:includes]->(s:song) RETURN collect(s.songName) as songs";
+        if (!userResult.hasNext())
+          return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
+        List<Object> followers = userResult.next().get("userName").asList();
+        if(followers.size() == 0)
+          return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
+        for (Object follower : followers) {
+          params.put("userName", (String) follower);
+          songResult = trans.run(queryStr, params);
+          data.put((String) follower,
+              !songResult.hasNext() ? new ArrayList<String>() : songResult.next().get("songs").asList());
+        }
+        dbQueryStatus.setData(data);
+        trans.success();
+      }
+      session.close();
+      return dbQueryStatus;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new DbQueryStatus(e.getMessage(), DbQueryExecResult.QUERY_ERROR_GENERIC);
+    }
+
   }
 }
