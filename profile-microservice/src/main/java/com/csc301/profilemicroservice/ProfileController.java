@@ -121,6 +121,7 @@ public class ProfileController {
         if (!body.get("status").toString().equals("OK"))
           dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
       } else if (dbQueryStatus.getdbQueryExecResult().equals(DbQueryExecResult.QUERY_ERROR_NOT_FOUND))
+        // Piazza @447
         dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_OK); // special case
     } catch (Exception e) {
       dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);

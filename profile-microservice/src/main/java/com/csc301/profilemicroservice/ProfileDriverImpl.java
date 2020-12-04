@@ -196,8 +196,8 @@ public class ProfileDriverImpl implements ProfileDriver {
         if (!userResult.hasNext())
           return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
         List<Object> followers = userResult.next().get("userName").asList();
-        if (followers.size() == 0)
-          return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
+
+        // CASE: no followers Piazza @505
         for (Object follower : followers) {
           params.put("userName", (String) follower);
           songResult = trans.run(queryStr, params);
