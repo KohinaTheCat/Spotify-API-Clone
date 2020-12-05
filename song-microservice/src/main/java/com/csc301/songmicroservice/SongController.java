@@ -33,6 +33,13 @@ public class SongController {
     this.songDal = songDal;
   }
 
+  /**
+   * Get song by id
+   * 
+   * @param songId  id of the song
+   * @param request HTTP Request
+   * @return Response Body
+   */
   @RequestMapping(value = "/getSongById/{songId}", method = RequestMethod.GET)
   public @ResponseBody Map<String, Object> getSongById(@PathVariable("songId") String songId,
       HttpServletRequest request) {
@@ -48,6 +55,13 @@ public class SongController {
     return response;
   }
 
+  /**
+   * Get Song Title By Id
+   * 
+   * @param songId  id of the song
+   * @param request HTTP Request
+   * @return Response Body
+   */
   @RequestMapping(value = "/getSongTitleById/{songId}", method = RequestMethod.GET)
   public @ResponseBody Map<String, Object> getSongTitleById(@PathVariable("songId") String songId,
       HttpServletRequest request) {
@@ -63,6 +77,13 @@ public class SongController {
     return response;
   }
 
+  /**
+   * Delete Song By Id
+   * 
+   * @param songId  id of the song
+   * @param request HTTP Request
+   * @return Response Body
+   */
   @RequestMapping(value = "/deleteSongById/{songId}", method = RequestMethod.DELETE)
   public @ResponseBody Map<String, Object> deleteSongById(@PathVariable("songId") String songId,
       HttpServletRequest request) {
@@ -70,9 +91,11 @@ public class SongController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("DELETE %s", Utils.getUrl(request)));
 
+    // mongo driver delete
     DbQueryStatus dbQueryStatus = songDal.deleteSongById(songId);
 
     if (dbQueryStatus.getdbQueryExecResult().equals(DbQueryExecResult.QUERY_OK)) {
+      // Internal endpoint from profile microservice
       String url = "http://localhost:3002/deleteAllSongsFromDb/" + songId;
       RequestBody formBody = new FormBody.Builder().build();
       Request req = new Request.Builder().url(url).put(formBody).build();
@@ -94,6 +117,13 @@ public class SongController {
     return response;
   }
 
+  /**
+   * Creates a new song
+   * 
+   * @param params  song name, artist full name, album name
+   * @param request HTTP Request
+   * @return Response Body
+   */
   @RequestMapping(value = "/addSong", method = RequestMethod.POST)
   public @ResponseBody Map<String, Object> addSong(@RequestParam Map<String, String> params,
       HttpServletRequest request) {
@@ -101,14 +131,16 @@ public class SongController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("POST %s", Utils.getUrl(request)));
 
+    // New Song instance + mongo driver add
     Song songToAdd = new Song(params.get(Song.KEY_SONG_NAME), params.get(Song.KEY_SONG_ARTIST_FULL_NAME),
         params.get(Song.KEY_SONG_ALBUM));
     DbQueryStatus dbQueryStatus = songDal.addSong(songToAdd);
 
     if (dbQueryStatus.getdbQueryExecResult().equals(DbQueryExecResult.QUERY_OK)) {
-      @SuppressWarnings("unchecked")
+      @SuppressWarnings("unchecked") // unchecked cast supression from getting dbquery data
       Map<String, String> song = (Map<String, String>) dbQueryStatus.getData();
 
+      // internal add from profile microservice
       String url = "http://localhost:3002/addSong/" + song.get("id") + "/" + song.get("songName");
       RequestBody formBody = new FormBody.Builder().build();
       Request req = new Request.Builder().url(url).post(formBody).build();
@@ -130,6 +162,14 @@ public class SongController {
     return response;
   }
 
+  /**
+   * Update song fav count
+   * 
+   * @param songId          id of the song
+   * @param shouldDecrement if true then count--; else count++
+   * @param request         HTTP Request
+   * @return Response Body
+   */
   @RequestMapping(value = "/updateSongFavouritesCount/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> updateFavouritesCount(@PathVariable("songId") String songId,
       @RequestParam("shouldDecrement") String shouldDecrement, HttpServletRequest request) {

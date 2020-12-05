@@ -1,14 +1,10 @@
 package com.csc301.songmicroservice;
 
-import java.util.Map;
-
 import com.mongodb.client.result.DeleteResult;
 
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -28,10 +24,17 @@ public class SongDalImpl implements SongDal {
     this.db = mongoTemplate;
   }
 
+  /**
+   * Add new song to mongo db
+   * 
+   * @param songToAdd Song instance to be added
+   */
   @Override
   public DbQueryStatus addSong(Song songToAdd) {
+    // null check
     boolean valid = songToAdd.getSongName() != null && songToAdd.getSongAlbum() != null
         && songToAdd.getSongArtistFullName() != null;
+
     Song inserted = valid ? db.insert(songToAdd, "songs") : null;
     DbQueryStatus status = new DbQueryStatus("POST", inserted != null ? this.OK : this.ERR);
     if (inserted != null)
@@ -39,6 +42,11 @@ public class SongDalImpl implements SongDal {
     return status;
   }
 
+  /**
+   * find song by id
+   * 
+   * @param songId id of the song
+   */
   @Override
   public DbQueryStatus findSongById(String songId) {
     try {
@@ -52,6 +60,11 @@ public class SongDalImpl implements SongDal {
     }
   }
 
+  /**
+   * find song title by id
+   * 
+   * @param songId id of the song
+   */
   @Override
   public DbQueryStatus getSongTitleById(String songId) {
     try {
@@ -66,6 +79,11 @@ public class SongDalImpl implements SongDal {
     }
   }
 
+  /**
+   * delete song by id
+   * 
+   * @param songId id of the song to be deleted
+   */
   @Override
   public DbQueryStatus deleteSongById(String songId) {
     try {
@@ -74,7 +92,7 @@ public class SongDalImpl implements SongDal {
       DbQueryStatus status = new DbQueryStatus("DELETE", this.ERR404);
       if (found != null) {
         DeleteResult res = db.remove(found, "songs");
-        if (res.wasAcknowledged())
+        if (res.wasAcknowledged()) // if delete was successful
           status.setdbQueryExecResult(this.OK);
       }
       return status;
@@ -83,6 +101,12 @@ public class SongDalImpl implements SongDal {
     }
   }
 
+  /**
+   * update song fav count
+   * 
+   * @param songId          id of the song
+   * @param shouldDecrement if true then count--; else count++
+   */
   @Override
   public DbQueryStatus updateSongFavouritesCount(String songId, boolean shouldDecrement) {
     try {
