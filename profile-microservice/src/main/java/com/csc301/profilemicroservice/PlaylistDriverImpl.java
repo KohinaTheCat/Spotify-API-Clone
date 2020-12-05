@@ -27,6 +27,12 @@ public class PlaylistDriverImpl implements PlaylistDriver {
     }
   }
 
+  /**
+   * Like song
+   * 
+   * @param userName username of user
+   * @param songId   id of the song
+   */
   @Override
   public DbQueryStatus likeSong(String userName, String songId) {
     boolean valid = userName != null && songId != null;
@@ -42,21 +48,23 @@ public class PlaylistDriverImpl implements PlaylistDriver {
       params.put("songId", songId);
       try (Transaction trans = session.beginTransaction()) {
 
+        // Check if playlist of user node exists
         queryStr = "MATCH (p:playlist {plName: $plName}) RETURN p";
         res = trans.run(queryStr, params);
         if (!res.hasNext())
           return new DbQueryStatus("PUT", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
+        // Check if song node exists
         queryStr = "MATCH (s:song {songId: $songId}) RETURN s";
         res = trans.run(queryStr, params);
         if (!res.hasNext())
           return new DbQueryStatus("PUT", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
-        // CASE: dup. like song Piazza @447
+        // Check if existing relationship exists
         queryStr = "MATCH r=(p:playlist {plName: $plName})-[:includes]->(s:song {songId: $songId}) RETURN r";
         res = trans.run(queryStr, params);
         if (res.hasNext())
-          return new DbQueryStatus("PUT", DbQueryExecResult.QUERY_ERROR_NOT_FOUND); // special case
+          return new DbQueryStatus("PUT", DbQueryExecResult.QUERY_ERROR_NOT_FOUND);
 
         queryStr = "MATCH (p:playlist {plName: $plName}) \n  MATCH (s:song {songId: $songId}) \n CREATE (p)-[:includes]->(s)";
         trans.run(queryStr, params);
@@ -70,6 +78,12 @@ public class PlaylistDriverImpl implements PlaylistDriver {
     }
   }
 
+  /**
+   * Unlike song
+   * 
+   * @param userName username of user
+   * @param songId   id of the song
+   */
   @Override
   public DbQueryStatus unlikeSong(String userName, String songId) {
     boolean valid = userName != null && songId != null;
@@ -85,17 +99,19 @@ public class PlaylistDriverImpl implements PlaylistDriver {
       params.put("songId", songId);
       try (Transaction trans = session.beginTransaction()) {
 
+        // Check if playlist of user node exists
         queryStr = "MATCH (p:playlist {plName: $plName}) RETURN p";
         res = trans.run(queryStr, params);
         if (!res.hasNext())
           return new DbQueryStatus("PUT", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
+        // Check if song node exists
         queryStr = "MATCH (s:song {songId: $songId}) RETURN s";
         res = trans.run(queryStr, params);
         if (!res.hasNext())
           return new DbQueryStatus("PUT", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
-        // CASE: dup. unlikes Piazza @447
+        // Check if existing relationship exists
         queryStr = "MATCH (p:playlist {plName: $plName})-[r:includes]->(s:song {songId: $songId}) RETURN r";
         res = trans.run(queryStr, params);
         if (!res.hasNext())
@@ -113,6 +129,11 @@ public class PlaylistDriverImpl implements PlaylistDriver {
     }
   }
 
+  /**
+   * deletes song node given songId
+   * 
+   * @param songId id of the song
+   */
   @Override
   public DbQueryStatus deleteSongFromDb(String songId) {
     String queryStr;
@@ -129,7 +150,13 @@ public class PlaylistDriverImpl implements PlaylistDriver {
     }
   }
 
-  /* Only newly created Valid Song Ids get passed here */
+  /**
+   * Adds new song node given id and name. Only newly created Valid Song Ids get
+   * passed here
+   * 
+   * @param songId   id of the song from mongo
+   * @param songName name of the song
+   */
   public DbQueryStatus addSong(String songId, String songName) {
     String queryStr;
     try (Session session = driver.session()) {

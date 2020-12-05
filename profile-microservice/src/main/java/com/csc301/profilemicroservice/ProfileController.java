@@ -40,6 +40,13 @@ public class ProfileController {
     this.playlistDriver = playlistDriver;
   }
 
+  /**
+   * POST /profile. Adds a profile to the Neo4j database
+   * 
+   * @param params  username, full name, and password
+   * @param request HTTP Request
+   * @return Response body
+   */
   @RequestMapping(value = "/profile", method = RequestMethod.POST)
   public @ResponseBody Map<String, Object> addProfile(@RequestParam Map<String, String> params,
       HttpServletRequest request) {
@@ -56,6 +63,15 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * PUT /followFriend/{userName}/{friendUserName}. Allows a Profile to follow
+   * another Profile and become a friend
+   * 
+   * @param userName       the user who will be doing the following
+   * @param friendUserName the user who will be followed
+   * @param request        HTTP Request
+   * @return Response Body
+   */
   @RequestMapping(value = "/followFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> followFriend(@PathVariable("userName") String userName,
       @PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
@@ -71,6 +87,15 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * GET /getAllFriendFavouriteSongTitles/{userName}. Returns the Song names of
+   * all of the Songs that the User’s friends have liked
+   * 
+   * @param userName username of user
+   * @param request  HTTP Request
+   * @return Response body
+   * 
+   */
   @RequestMapping(value = "/getAllFriendFavouriteSongTitles/{userName}", method = RequestMethod.GET)
   public @ResponseBody Map<String, Object> getAllFriendFavouriteSongTitles(@PathVariable("userName") String userName,
       HttpServletRequest request) {
@@ -86,6 +111,16 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * PUT /unfollowFriend/{userName}/{friendUserName}. Allows a Profile to unfollow
+   * another Profile and no longer be “friends” with them
+   * 
+   * @param userName       the user who will be doing the un-following
+   * @param friendUserName the user who will be un-followed
+   * @param request        HTTP Request
+   * @return Response Body
+   * 
+   */
   @RequestMapping(value = "/unfollowFriend/{userName}/{friendUserName}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> unfollowFriend(@PathVariable("userName") String userName,
       @PathVariable("friendUserName") String friendUserName, HttpServletRequest request) {
@@ -101,6 +136,15 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * PUT /likeSong/{userName}/{songId}. Allows a Profile to like a song and add it
+   * to their favourites. You can like the same song twice
+   * 
+   * @param userName username of the liker
+   * @param songId   id of the to-be-liked song
+   * @param request  HTTP Request
+   * @return Response body
+   */
   @RequestMapping(value = "/likeSong/{userName}/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> likeSong(@PathVariable("userName") String userName,
       @PathVariable("songId") String songId, HttpServletRequest request) {
@@ -108,6 +152,7 @@ public class ProfileController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
+    // Endpoint from song microservice
     String url = "http://localhost:3001/updateSongFavouritesCount/" + songId + "?shouldDecrement=false";
     RequestBody formBody = new FormBody.Builder().build();
     Request req = new Request.Builder().url(url).put(formBody).build();
@@ -121,8 +166,7 @@ public class ProfileController {
         if (!body.get("status").toString().equals("OK"))
           dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
       } else if (dbQueryStatus.getdbQueryExecResult().equals(DbQueryExecResult.QUERY_ERROR_NOT_FOUND))
-        // Piazza @447
-        dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_OK); // special case
+        dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_OK); // CASE: dup. like song Piazza @447
     } catch (Exception e) {
       dbQueryStatus.setdbQueryExecResult(DbQueryExecResult.QUERY_ERROR_GENERIC);
       e.printStackTrace();
@@ -134,6 +178,15 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * PUT /unlikeSong/{userName}/{songId}. : Allows a Profile to unlike a song and
+   * remove it from their favourites. You cannot unlike the same song twice.
+   * 
+   * @param userName username of the un-liker
+   * @param songId   id of the to-be-unliked song
+   * @param request  HTTP Request
+   * @return Response Body
+   */
   @RequestMapping(value = "/unlikeSong/{userName}/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> unlikeSong(@PathVariable("userName") String userName,
       @PathVariable("songId") String songId, HttpServletRequest request) {
@@ -141,6 +194,7 @@ public class ProfileController {
     Map<String, Object> response = new HashMap<String, Object>();
     response.put("path", String.format("PUT %s", Utils.getUrl(request)));
 
+    // Endpoint from song microservice
     String url = "http://localhost:3001/updateSongFavouritesCount/" + songId + "?shouldDecrement=true";
     RequestBody formBody = new FormBody.Builder().build();
     Request req = new Request.Builder().url(url).put(formBody).build();
@@ -165,6 +219,14 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * Delete song node given songId (INTERNAL) - From our implementation, there is
+   * only one node for each valid song stored in mongo
+   * 
+   * @param songId  id of the song to be deleted
+   * @param request HTTP Request
+   * @return Response body
+   */
   @RequestMapping(value = "/deleteAllSongsFromDb/{songId}", method = RequestMethod.PUT)
   public @ResponseBody Map<String, Object> deleteAllSongsFromDb(@PathVariable("songId") String songId,
       HttpServletRequest request) {
@@ -180,6 +242,15 @@ public class ProfileController {
     return response;
   }
 
+  /**
+   * Add new song node (INTERNAL) - From our implementation, every time a new song
+   * is created in mongo, it is then created here
+   * 
+   * @param songId   id of song (from mongo)
+   * @param songName name of song
+   * @param request  HTTP Request
+   * @return Response Body
+   */
   @RequestMapping(value = "/addSong/{songId}/{songName}", method = RequestMethod.POST)
   public @ResponseBody Map<String, Object> addProfile(@PathVariable("songId") String songId,
       @PathVariable("songName") String songName, HttpServletRequest request) {

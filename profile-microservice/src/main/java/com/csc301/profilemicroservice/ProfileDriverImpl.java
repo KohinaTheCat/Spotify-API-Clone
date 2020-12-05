@@ -37,6 +37,15 @@ public class ProfileDriverImpl implements ProfileDriver {
     }
   }
 
+  /**
+   * Creates a user profile on the Neo4j DB with a unique userName, and fullName
+   * and password
+   * 
+   * @param userName
+   * @param fullName
+   * @param password
+   * @return DbQueryStatus
+   */
   @Override
   public DbQueryStatus createUserProfile(String userName, String fullName, String password) {
     boolean valid = userName != null && fullName != null && password != null;
@@ -62,13 +71,19 @@ public class ProfileDriverImpl implements ProfileDriver {
     }
   }
 
+  /**
+   * Creates a relationship userName-[:follows]->frndUserName
+   * 
+   * @param userName
+   * @param frndUserName
+   * @return DbQueryStatus
+   */
   @Override
   public DbQueryStatus followFriend(String userName, String frndUserName) {
     boolean valid = userName != null && frndUserName != null;
 
     if (!valid)
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
-
     if (userName.equals(frndUserName))
       return new DbQueryStatus("POST", DbQueryExecResult.QUERY_ERROR_GENERIC);
 
@@ -117,6 +132,13 @@ public class ProfileDriverImpl implements ProfileDriver {
     }
   }
 
+  /**
+   * Removes a relationship userName-[:follows]->frndUserName
+   * 
+   * @param userName
+   * @param frndUserName
+   * @return DbQueryStatus
+   */
   @Override
   public DbQueryStatus unfollowFriend(String userName, String frndUserName) {
     boolean valid = userName != null && frndUserName != null;
@@ -173,6 +195,12 @@ public class ProfileDriverImpl implements ProfileDriver {
     }
   }
 
+  /**
+   * Get's the liked songs of friends of userName
+   * 
+   * @param userName
+   * @return DbQueryStatus
+   */
   @Override
   public DbQueryStatus getAllSongFriendsLike(String userName) {
     boolean valid = userName != null;
@@ -189,18 +217,19 @@ public class ProfileDriverImpl implements ProfileDriver {
       params.put("userName", userName);
 
       try (Transaction trans = session.beginTransaction()) {
+        // returns a list of usernames of user nodes that the given username follows
         queryStr = "MATCH (a:profile {userName: $userName})-[:follows]->(b:profile) RETURN collect(b.userName) as userName";
         userResult = trans.run(queryStr, params);
         Map<String, Object> data = new HashMap<>();
+        // finds all the songs a given username has liked
         queryStr = "MATCH (c:playlist {plName: $userName + '-favourites'})-[:includes]->(s:song) RETURN collect(s.songName) as songs";
         if (!userResult.hasNext())
           return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
         List<Object> followers = userResult.next().get("userName").asList();
-
-        // CASE: no followers Piazza @505
         for (Object follower : followers) {
           params.put("userName", (String) follower);
           songResult = trans.run(queryStr, params);
+          // only for a sanity check, for the most part, the query returns [], i.e. songResult.hasNext() == true
           data.put((String) follower,
               !songResult.hasNext() ? new ArrayList<String>() : songResult.next().get("songs").asList());
         }
@@ -213,6 +242,5 @@ public class ProfileDriverImpl implements ProfileDriver {
       e.printStackTrace();
       return new DbQueryStatus(e.getMessage(), DbQueryExecResult.QUERY_ERROR_GENERIC);
     }
-
   }
 }
