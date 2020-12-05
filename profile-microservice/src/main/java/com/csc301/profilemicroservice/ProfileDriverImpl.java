@@ -217,18 +217,19 @@ public class ProfileDriverImpl implements ProfileDriver {
       params.put("userName", userName);
 
       try (Transaction trans = session.beginTransaction()) {
+        // returns a list of usernames of user nodes that the given username follows
         queryStr = "MATCH (a:profile {userName: $userName})-[:follows]->(b:profile) RETURN collect(b.userName) as userName";
         userResult = trans.run(queryStr, params);
         Map<String, Object> data = new HashMap<>();
+        // finds all the songs a given username has liked
         queryStr = "MATCH (c:playlist {plName: $userName + '-favourites'})-[:includes]->(s:song) RETURN collect(s.songName) as songs";
         if (!userResult.hasNext())
           return new DbQueryStatus("GET", DbQueryExecResult.QUERY_ERROR_GENERIC);
         List<Object> followers = userResult.next().get("userName").asList();
-
-        // CASE: no followers Piazza @505
         for (Object follower : followers) {
           params.put("userName", (String) follower);
           songResult = trans.run(queryStr, params);
+          // only for a sanity check, for the most part, the query returns [], i.e. songResult.hasNext() == true
           data.put((String) follower,
               !songResult.hasNext() ? new ArrayList<String>() : songResult.next().get("songs").asList());
         }
