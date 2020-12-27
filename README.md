@@ -17,13 +17,14 @@ The MongoDB database is used for storing song information, while the Neo4j graph
      <img width="75%" src="./neo4j.png"/>
 </p>
 
+
 ## Usage
 
 ### Song Microservice
 
 this service runs on port `3001`
 
-> GET  `/getSongTitleById/{songId}`
+> #### GET  `/getSongTitleById/{songId}`
 
 - retrieves the song title given the `songId`
 - **URL Parameters**
@@ -32,7 +33,7 @@ this service runs on port `3001`
   - `OK`, if the title was retrieved successfully
   - `<string>`, any other status if the song was not retrieved successfully
 
-> DELETE  `/deleteSongById/{songId}`
+> #### DELETE  `/deleteSongById/{songId}`
 
 - deletes the song from MongoDB and all Profiles that have added it to their favorites list
 - **URL Parameters**
@@ -41,7 +42,7 @@ this service runs on port `3001`
   - `OK`, if the song was deleted successfully
   - `<string>`, any other status if the song was not deleted successfully
 
-> POST  `/addSong`
+> #### POST  `/addSong`
 
 - adds a song to the database
 - **Query Parameters**
@@ -55,7 +56,7 @@ this service runs on port `3001`
   - `data`
     - song object
 
-> PUT `/updateSongFavouritesCount/{songId}?shouldDecrement=`
+> #### PUT `/updateSongFavouritesCount/{songId}?shouldDecrement=`
 
 - updates the song's favorites count
 - **URL Parameters**
@@ -73,7 +74,7 @@ this service runs on port `3001`
 
 this service runs on port `3002`
 
-> POST `/profile`
+> #### POST `/profile`
 
 - Adds a profile to the database and creates a liked songs playlist
 
@@ -87,7 +88,7 @@ this service runs on port `3002`
     - `OK`, if the profile was created successfully
     - `<string>`, any other status if the profile was not created successfully
 
-> PUT  `/followFriend/{username}/{friendUserName}`
+> #### PUT  `/followFriend/{username}/{friendUserName}`
 
 - allows a profile to follow another profile
 - **URL Parameters**
@@ -99,7 +100,7 @@ this service runs on port `3002`
     - `OK`, if the the user was able to follow successfully
     - `<string>`, any other status if the the user was not able to follow successfully
 
-> PUT  `/unfollowFriend/{username}/{friendUserName}`
+> #### PUT  `/unfollowFriend/{username}/{friendUserName}`
 
 - allows a profile to unfollow another profile
 - **URL Parameters**
@@ -111,31 +112,31 @@ this service runs on port `3002`
     - `OK`, if the the user was able to unfollow successfully
     - `<string>`, any other status if the the user was not able to unfollow successfully
 
-> PUT  `/likeSong/{userName}/{songId}`
+> #### PUT  `/likeSong/{userName}/{songId}`
 
 - allows a profile to like a song and add it to their liked songs playlist
 - **URL Parameters**
   - `userName`  : the username of the profile that will like the song
-  -  `songId` is the _id of a specific song
+  - `songId` is the _id of a specific song
 
 - **Expected Response**
   - `status`
     - `OK`, if the the user was able to like the song successfully
     - `<string>`, any other status if the the user was not able to like the song successfully
 
-> PUT  `/unlikeSong/{userName}/{songId}`
+> #### PUT  `/unlikeSong/{userName}/{songId}`
 
 - allows a profile to unlike a song and add it to their liked songs playlist
 - **URL Parameters**
   - `userName`  : the username of the profile that will unlike the song
-  -  `songId` is the _id of a specific song
+  - `songId` is the _id of a specific song
 
 - **Expected Response**
   - `status`
     - `OK`, if the the user was able to unlike the song successfully
     - `<string>`, any other status if the the user was not able to unlike the song successfully
 
-> GET  `getAllFriendFavouriteSongTitles/{userName}`
+> #### GET  `getAllFriendFavouriteSongTitles/{userName}`
 
 - returns all the song names of the songs that the user's friends have liked
 - **URL Parameters**
