@@ -14,7 +14,7 @@ This API has two microservices: `Profile` and `Song`.
 The MongoDB database is used for storing song information, while the Neo4j graph database is used for storing profile information, their relationship between other users and their liked songs. 
 
 <p align="center">
-     <img width="75%" src="./docs/neo4j.png"/>
+     <img width="75%" src="./neo4j.png"/>
 </p>
    
 
