@@ -18,4 +18,9 @@ The MongoDB database is used for storing song information, while the Neo4j graph
 </p>
    
 
-Click [here](https://navn.me/spotify-api-clone) for usage and documentation.
+Click [here](https://navn.me/spotify-api-clone) for usage and documentation.  
+
+## Contributors
+- [Clara Chick](https://clarachick.me/)
+- [Navinn Ravindaran](https://navn.me/)
+
